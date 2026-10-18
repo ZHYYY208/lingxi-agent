@@ -3,6 +3,8 @@ package com.lingxi.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -23,7 +25,7 @@ public class ModelSettingsEntity {
     @Column(length = 160)
     private String model = "";
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(name = "api_key_encrypted")
     private String apiKeyEncrypted;
 

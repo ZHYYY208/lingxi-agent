@@ -3,6 +3,8 @@ package com.lingxi.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -25,15 +27,15 @@ public class ChatMessageEntity {
     @Column(nullable = false, length = 16)
     private String role;
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(nullable = false)
     private String content;
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(name = "citations_json", nullable = false)
     private String citationsJson = "[]";
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(name = "tools_json", nullable = false)
     private String toolsJson = "[]";
 

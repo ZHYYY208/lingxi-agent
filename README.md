@@ -141,6 +141,10 @@ docker compose up -d --build
 
 访问 <http://127.0.0.1:8000>，管理端为 <http://127.0.0.1:8000/admin>。首次构建需要拉取 Maven/Milvus 等镜像，Milvus 建议预留至少 6 GB 内存。服务健康检查通过后再启动 API。
 
+> **MinIO 说明**：MinIO 官方 `minio/minio` 镜像已从 Docker Hub 下架，Compose 使用兼容的 `bitnamilegacy/minio` 镜像；如果你有内部镜像仓库，可以替换 `docker-compose.yml` 中的 MinIO 镜像地址。首次构建如果 Docker Hub 访问不稳定，请先在 Docker Desktop 配置代理或可用的镜像加速器。
+>
+> **MySQL 升级说明**：`chunks.text/embedding`、会话消息等长文本字段在 MySQL 中使用 `TEXT`。如果从早期 Docker 版本升级并保留旧的 MySQL 数据卷，Hibernate 不会自动修改已有列类型，请先备份数据，再重建相关表或数据卷。
+
 不配置 `LLM_API_KEY` 时，容器内仍会使用本地证据引擎，上传和检索能力完整可用。也可以在登录管理端后，在「模型接入」中配置第三方 API 或本地 Ollama，运行时即时生效。首次启动也可以通过环境变量初始化：
 
 ```env
