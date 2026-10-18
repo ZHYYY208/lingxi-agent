@@ -1,22 +1,29 @@
 package com.lingxi.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lingxi.config.LingxiProperties;
 import com.lingxi.dto.Dtos;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
+import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class LlmClient {
@@ -35,15 +42,11 @@ public class LlmClient {
     private final LingxiProperties properties;
     private final ObjectMapper mapper;
     private final ModelConfigService modelConfig;
-    private final HttpClient httpClient;
 
     public LlmClient(LingxiProperties properties, ObjectMapper mapper, ModelConfigService modelConfig) {
         this.properties = properties;
         this.mapper = mapper;
         this.modelConfig = modelConfig;
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
     }
 
     public boolean configured() {
@@ -97,54 +100,76 @@ public class LlmClient {
         return messages;
     }
 
-    public boolean stream(List<Map<String, String>> messages, TokenConsumer consumer) throws IOException, InterruptedException {
+    /**
+     * Streams a model response through LangChain4j's OpenAI-compatible
+     * StreamingChatModel. The rest of the application remains framework-neutral
+     * and can switch between a remote API and a local Ollama/LM Studio endpoint
+     * at runtime.
+     */
+    public boolean stream(List<Map<String, String>> messages, TokenConsumer consumer)
+            throws IOException, InterruptedException {
         ModelConfigService.RuntimeConfig runtime = modelConfig.runtime();
         if (!runtime.configured()) throw new IOException("模型未配置");
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("model", runtime.model());
-        payload.put("messages", messages);
-        payload.put("stream", true);
-        payload.put("temperature", runtime.temperature());
-        payload.put("max_tokens", runtime.maxTokens());
 
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(
-                        URI.create(stripSlash(runtime.baseUrl()) + "/chat/completions"))
-                .timeout(Duration.ofSeconds(properties.llmTimeoutSeconds()))
-                .header("Content-Type", "application/json")
-                .header("Accept", "text/event-stream")
-                .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(payload), StandardCharsets.UTF_8));
-        if (runtime.apiKey() != null && !runtime.apiKey().isBlank()) {
-            requestBuilder.header("Authorization", "Bearer " + runtime.apiKey());
-        }
-        HttpResponse<java.util.stream.Stream<String>> response =
-                httpClient.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofLines());
-        if (response.statusCode() >= 400) {
-            throw new IOException("LLM 请求失败：" + response.statusCode());
-        }
-        boolean any = false;
-        for (String line : (Iterable<String>) response.body()::iterator) {
-            if (!line.startsWith("data:")) continue;
-            String data = line.substring(5).strip();
-            if (data.isEmpty() || "[DONE]".equals(data)) continue;
-            try {
-                JsonNode node = mapper.readTree(data);
-                JsonNode delta = node.path("choices").path(0).path("delta").path("content");
-                if (!delta.isMissingNode() && !delta.isNull()) {
-                    String token = delta.asText();
-                    if (!token.isEmpty()) {
-                        any = true;
-                        consumer.accept(token);
-                    }
-                }
-            } catch (Exception ignored) {
+        List<ChatMessage> chatMessages = new ArrayList<>();
+        for (Map<String, String> message : messages) {
+            String content = message.getOrDefault("content", "");
+            switch (message.getOrDefault("role", "user")) {
+                case "system" -> chatMessages.add(SystemMessage.from(content));
+                case "assistant" -> chatMessages.add(AiMessage.from(content));
+                default -> chatMessages.add(UserMessage.from(content));
             }
         }
-        return any;
-    }
 
-    private static String stripSlash(String value) {
-        if (value == null) return "";
-        return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+        String apiKey = runtime.apiKey() == null || runtime.apiKey().isBlank()
+                ? "not-needed" : runtime.apiKey();
+        StreamingChatModel model = OpenAiStreamingChatModel.builder()
+                .baseUrl(runtime.baseUrl())
+                .apiKey(apiKey)
+                .modelName(runtime.model())
+                .temperature(runtime.temperature())
+                .maxTokens(runtime.maxTokens())
+                .timeout(Duration.ofSeconds(properties.llmTimeoutSeconds()))
+                .logRequests(false)
+                .logResponses(false)
+                .build();
+
+        CompletableFuture<Boolean> completion = new CompletableFuture<>();
+        AtomicBoolean received = new AtomicBoolean(false);
+        AtomicBoolean closed = new AtomicBoolean(false);
+
+        model.chat(chatMessages, new StreamingChatResponseHandler() {
+            @Override
+            public void onPartialResponse(String partial) {
+                if (closed.get() || partial == null || partial.isEmpty()) return;
+                received.set(true);
+                try {
+                    consumer.accept(partial);
+                } catch (IOException exc) {
+                    closed.set(true);
+                    completion.completeExceptionally(exc);
+                }
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse response) {
+                completion.complete(received.get());
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                completion.completeExceptionally(error);
+            }
+        });
+
+        try {
+            return completion.get(properties.llmTimeoutSeconds() + 10L, TimeUnit.SECONDS);
+        } catch (TimeoutException exc) {
+            throw new IOException("模型响应超时", exc);
+        } catch (ExecutionException exc) {
+            Throwable cause = exc.getCause() == null ? exc : exc.getCause();
+            throw new IOException("模型生成失败：" + cause.getMessage(), cause);
+        }
     }
 
     @FunctionalInterface

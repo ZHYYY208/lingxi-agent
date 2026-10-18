@@ -1,8 +1,8 @@
 # 灵犀 · 企业知识库智能体
 
-> 基于 **Spring Boot 3 + RAG + 多工具调用** 的企业内部知识库问答系统。上传 PDF / Word / Markdown / TXT，自动切片建索引，通过混合检索、重排、Agent 工具调用与 SSE 流式输出，给出**带原文出处**的回答。
+> 基于 **Spring Boot 3 + LangChain4j + RAG + 多工具调用** 的企业内部知识库问答系统。上传 PDF / Word / Markdown / TXT，自动切片建索引，通过混合检索、重排、Agent 工具调用与 SSE 流式输出，给出**带原文出处**的回答。
 
-后端已迁移为 **Java 21 + Spring Boot 3.5**。用户端只保留问答与证据查看；文档上传、切片、索引维护和模型接入都集中在独立的 **`/admin` 管理控制台**。默认使用 **H2 内嵌数据库 + 本地向量索引 + 本地证据回答引擎**，无需 MySQL、Redis、Milvus 或大模型 Key 即可完整演示。
+后端使用 **Java 21 + Spring Boot 3.5 + LangChain4j 1.0**。用户端只保留问答与证据查看；文档上传、切片、索引维护和模型接入都集中在独立的 **`/admin` 管理控制台**。默认使用 **H2 内嵌数据库 + 本地向量索引 + 本地证据回答引擎**，无需 MySQL、Redis、Milvus 或大模型 Key 即可完整演示。
 
 ![灵犀界面](docs/overview.png)
 
@@ -23,12 +23,13 @@
 - **管理员控制台**：独立 `/admin` 登录入口，集中管理知识库文档、索引和模型接入；用户端不再暴露上传与删除能力。
 - **文档上传与知识库管理**：多文件上传、拖拽、进度反馈、状态轮询、切片预览、下载、重建索引、删除；内置 4 篇演示资料。
 - **模型接入**：管理端可运行时切换第三方 OpenAI 兼容 API、本地 Ollama / LM Studio 或本地证据模式；API Key 加密保存，保存后立即生效，无需重启。
+- **LangChain4j 模型网关**：使用 `OpenAiStreamingChatModel` 统一接入 OpenAI 兼容服务与本地 LLM，流式 token 直接进入现有 SSE 通道。
 - **RAG 检索链路**：语义优先切分（512 字 / 64 字重叠）、Jieba 中文分词、向量召回 + BM25 召回、RRF 融合、概念锚定、多信号 Rerank、Top-5 证据。
 - **可溯源回答**：关键结论带 `[n]` 引用；右侧证据面板展示文档、章节、页码、相关度、原片段。
 - **Agent 多工具调用**：知识库检索、只读经营数据库查询、联网搜索（可选）；SSE 实时展示规划、工具、证据、token 与完成事件。
 - **多轮会话**：会话列表、重命名、删除、历史加载；Redis 可用时会话上下文自动缓存。
 - **完整中文前端**：响应式桌面/移动布局、流式对话、Markdown/表格、引用跳转、工具轨迹、反馈、设置，以及独立管理端。
-- **工程化**：Spring Boot 3.5、Spring Data JPA、H2 / MySQL、Redis、Milvus、管理员 Token 鉴权、API Key、限流、结构化访问日志、请求 ID、Docker Compose、Maven Wrapper、集成测试。
+- **工程化**：Spring Boot 3.5、LangChain4j、Spring Data JPA、H2 / MySQL、Redis、Milvus、管理员 Token 鉴权、API Key、限流、结构化访问日志、请求 ID、Docker Compose、Maven Wrapper、集成测试。
 - **降低乱答**：高 IDF 概念锚定 + 标题优先 + 相对相关度阈值；证据不足时明确拒答，而不是让模型编造。
 
 ## 🚀 本地启动
@@ -108,7 +109,7 @@ java -jar backend\target\lingxi-backend.jar
 │  │   ├─ database_query：受控指标解析 + 参数化只读查询                                  │
 │  │   └─ web_search：Tavily / DuckDuckGo（可选）                                        │
 │  ├─ RAG：512 字切片 / 64 字重叠 → 向量 → 混合召回 → 概念锚定 → 重排 Top-5             │
-│  └─ LLM Gateway：运行时配置第三方 API / 本地 Ollama；无模型时本地证据引擎             │
+│  └─ LangChain4j 模型网关：第三方 API / 本地 Ollama；无模型时本地证据引擎              │
 └───────────────┬──────────────────┬──────────────────┬────────────────────────────────┘
                 │                  │                  │
         ┌───────▼───────┐  ┌───────▼───────┐  ┌───────▼─────────┐
@@ -126,6 +127,7 @@ java -jar backend\target\lingxi-backend.jar
 - **流式**：SSE 事件拆分为 `meta / status / tool / citations / token / done / error`，前端逐步渲染工具与引用，而不是等待整段 JSON。
 - **数据库安全**：不执行模型生成的任意 SQL；工具只解析区域、季度、指标等受限槽位，并生成参数化查询。
 - **存储降级**：默认 H2；MySQL 通过 `DATABASE_URL` 切换；Milvus 配置不可用时自动回退本地向量索引；Redis 未启用时使用数据库会话。
+- **LangChain4j 边界**：模型流式调用由 LangChain4j 的 `OpenAiStreamingChatModel` 完成；工具选择、证据核验、引用编号与 SSE 事件仍由显式状态机编排，以保证每条结论都可追踪到原文。
 
 ## 🐳 Docker Compose 一键部署
 
@@ -274,6 +276,7 @@ mvn test
 
 - 本地默认使用哈希 N-gram 嵌入，以保证完全离线可运行；生产环境建议替换为 BGE-M3、text-embedding-3 等嵌入模型，并调整 `EMBEDDING_DIM`。
 - 第三方模型和本地 Ollama 使用同一套 OpenAI Chat Completions 兼容协议；在管理端「模型接入」保存后立即生效。
+- 后端是 Java 21，因此接入的是 **LangChain4j**，不是 Python 版 LangChain。模型流式调用已使用 LangChain4j，Agent 工具编排与证据核验仍保留显式状态机，以支持可追踪引用和细粒度 SSE 事件。
 - 管理员默认密码为 `lingxi-admin`，登录后管理端会显示安全提醒；生产环境必须修改。
 - Milvus 连接失败时会自动回退到本地向量索引；Docker Compose 配置已提供完整依赖链路，但本机开发环境未安装 Docker，因此未执行容器级联调。
 - 经营数据库中的销售数据为演示数据，仅用于展示工具调用与数据溯源，不代表真实业务。
