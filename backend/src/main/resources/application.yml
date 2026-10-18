@@ -1,0 +1,111 @@
+server:
+  port: ${PORT:8000}
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 30s
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: lingxi-backend
+  datasource:
+    url: ${DATABASE_URL:jdbc:h2:file:./data/lingxi;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE}
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 2
+      connection-timeout: 30000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: false
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      timeout: 1200ms
+      connect-timeout: 1200ms
+      repositories:
+        enabled: false
+  servlet:
+    multipart:
+      max-file-size: ${MAX_UPLOAD_MB:25}MB
+      max-request-size: 260MB
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    serialization:
+      write-dates-as-timestamps: false
+  mvc:
+    async:
+      request-timeout: 300000
+  web:
+    resources:
+      cache:
+        period: 0
+  h2:
+    console:
+      enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: INFO
+    org.hibernate: WARN
+    io.milvus: WARN
+    org.apache.pdfbox: WARN
+    org.apache.poi: WARN
+
+lingxi:
+  app-name: 灵犀 · 企业知识库智能体
+  app-version: 1.0.0
+  app-env: ${APP_ENV:development}
+  data-dir: ${DATA_DIR:./data}
+  api-key: ${LINGXI_API_KEY:}
+  admin-password: ${ADMIN_PASSWORD:lingxi-admin}
+  admin-token-ttl-seconds: ${ADMIN_TOKEN_TTL_SECONDS:28800}
+  secret-key: ${LINGXI_SECRET:lingxi-local-secret-change-me}
+  max-upload-mb: ${MAX_UPLOAD_MB:25}
+  chunk-size: ${CHUNK_SIZE:512}
+  chunk-overlap: ${CHUNK_OVERLAP:64}
+  retrieval-top-k: ${RETRIEVAL_TOP_K:5}
+  retrieval-candidates: ${RETRIEVAL_CANDIDATES:24}
+  min-retrieval-score: ${MIN_RETRIEVAL_SCORE:0.12}
+  rate-limit-per-minute: ${RATE_LIMIT_PER_MINUTE:60}
+  chat-rate-limit-per-minute: ${CHAT_RATE_LIMIT_PER_MINUTE:20}
+  demo-seed: ${ENABLE_DEMO_SEED:true}
+  demo-stream-delay-ms: ${DEMO_STREAM_DELAY_MS:14}
+  embedding-dim: ${EMBEDDING_DIM:512}
+  embedding-provider: ${EMBEDDING_PROVIDER:local}
+  embedding-base-url: ${EMBEDDING_BASE_URL:}
+  embedding-api-key: ${EMBEDDING_API_KEY:}
+  embedding-model: ${EMBEDDING_MODEL:text-embedding-3-small}
+  llm-base-url: ${LLM_BASE_URL:https://api.deepseek.com/v1}
+  llm-api-key: ${LLM_API_KEY:}
+  llm-model: ${LLM_MODEL:deepseek-chat}
+  llm-temperature: ${LLM_TEMPERATURE:0.2}
+  llm-max-tokens: ${LLM_MAX_TOKENS:1400}
+  llm-timeout-seconds: ${LLM_TIMEOUT_SECONDS:60}
+  web-search-enabled: ${ENABLE_WEB_SEARCH:false}
+  tavily-api-key: ${TAVILY_API_KEY:}
+  web-search-timeout-seconds: ${WEB_SEARCH_TIMEOUT_SECONDS:8}
+  redis-enabled: ${REDIS_ENABLED:false}
+  session-cache-ttl-seconds: ${SESSION_CACHE_TTL_SECONDS:86400}
+  milvus-uri: ${MILVUS_URI:}
+  milvus-token: ${MILVUS_TOKEN:}
+  milvus-collection: ${MILVUS_COLLECTION:lingxi_chunks}
+  cors-origins: ${CORS_ORIGINS:}

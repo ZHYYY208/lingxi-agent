@@ -1,0 +1,13 @@
+.git
+.venv
+venv
+__pycache__
+.runtime
+backend/target
+data
+docs
+tests
+.env
+*.log
+README.md
+node_modules

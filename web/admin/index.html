@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>灵犀 · 管理控制台</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/admin.css?v=1.1.0">
+</head>
+<body>
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-logo" viewBox="0 0 40 40">
+      <path d="M20 2.5 35.2 11v18L20 37.5 4.8 29V11L20 2.5Z" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M12 14.5h16M12 20h11M12 25.5h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="28.8" cy="20" r="2.2" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3M10 10h4v4h-4z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.5 9.7 9.7 0 0 1-3.6-.7L3 21l1.6-4.6A8.2 8.2 0 0 1 3.8 12 8.4 8.4 0 0 1 12 3.5a8.4 8.4 0 0 1 9 8Z"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 8a8 8 0 1 0 1 6M20 3v5h-5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z"/><path d="M14 3v6h6M8 14h8M8 17h5"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h5M15 8l4 4-4 4M19 12H9"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2.8 20h18.4L12 3Z"/><path d="M12 9v5M12 17.5h.01"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 4l4 4M13 7l3 3"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M14 6l6 6-6 6"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v5.5c0 4.6 3.2 8.3 8 9.5 4.8-1.2 8-4.9 8-9.5V6l-8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m12 3 1.4 4.6L18 9l-4.6 1.4L12 15l-1.4-4.6L6 9l4.6-1.4L12 3Z"/></symbol>
+  </svg>
+
+  <section class="login-shell" id="loginView">
+    <div class="login-backdrop"></div>
+    <div class="login-card">
+      <div class="admin-brand">
+        <span class="brand-mark"><svg><use href="#i-logo"></use></svg></span>
+        <div><strong>灵犀</strong><span>ADMIN CONSOLE</span></div>
+      </div>
+      <div class="login-copy">
+        <p class="eyebrow">SECURE ACCESS</p>
+        <h1>管理控制台</h1>
+        <p>维护知识库文档，配置第三方模型 API 或本地 LLM。</p>
+      </div>
+      <form id="loginForm" class="login-form">
+        <label for="adminPassword">管理员密码</label>
+        <div class="password-field">
+          <svg><use href="#i-key"></use></svg>
+          <input id="adminPassword" type="password" autocomplete="current-password" placeholder="请输入管理员密码" required>
+        </div>
+        <p class="form-error" id="loginError" hidden></p>
+        <button class="btn btn-primary btn-block" type="submit" id="loginBtn">进入控制台</button>
+      </form>
+      <p class="login-hint">默认密码为 <code>lingxi-admin</code>，请通过 <code>ADMIN_PASSWORD</code> 修改。</p>
+      <a class="back-link" href="/"><svg><use href="#i-chat"></use></svg>返回问答工作台</a>
+    </div>
+  </section>
+
+  <div class="admin-shell" id="adminApp" hidden>
+    <div class="mobile-scrim" id="mobileScrim" hidden></div>
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="sidebar-brand">
+        <span class="brand-mark"><svg><use href="#i-logo"></use></svg></span>
+        <div class="brand-copy"><strong>灵犀</strong><span>ADMIN CONSOLE</span></div>
+        <button class="icon-btn sidebar-close" id="sidebarClose" aria-label="关闭导航"><svg><use href="#i-close"></use></svg></button>
+      </div>
+      <nav class="admin-nav">
+        <button class="admin-nav-item active" data-section="dashboard"><svg><use href="#i-grid"></use></svg><span>运营概览</span></button>
+        <button class="admin-nav-item" data-section="documents"><svg><use href="#i-book"></use></svg><span>知识库文档</span><span class="nav-count" id="navDocCount">0</span></button>
+        <button class="admin-nav-item" data-section="model"><svg><use href="#i-cpu"></use></svg><span>模型接入</span><span class="model-dot" id="navModelDot"></span></button>
+      </nav>
+      <div class="sidebar-space"></div>
+      <div class="sidebar-status">
+        <div class="status-line"><span class="dot" id="sidebarHealthDot"></span><span id="sidebarHealthText">服务检查中</span></div>
+        <p id="sidebarModelName">本地证据模式</p>
+      </div>
+      <div class="sidebar-actions">
+        <a href="/" class="sidebar-link"><svg><use href="#i-chat"></use></svg><span>返回问答</span></a>
+        <button id="logoutBtn" class="sidebar-link"><svg><use href="#i-logout"></use></svg><span>退出登录</span></button>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <button class="icon-btn mobile-menu" id="mobileMenu" aria-label="打开导航"><svg><use href="#i-menu"></use></svg></button>
+        <div class="topbar-title">
+          <span>灵犀管理端</span><span class="slash">/</span><strong id="sectionTitle">运营概览</strong>
+        </div>
+        <div class="topbar-right">
+          <span class="mode-pill" id="modelModePill"><span class="dot"></span><span>本地证据模式</span></span>
+          <span class="admin-chip">ADMIN</span>
+        </div>
+      </header>
+
+      <div class="admin-content">
+        <section class="admin-section" id="dashboardSection">
+          <div class="section-hero">
+            <div>
+              <p class="eyebrow">OVERVIEW</p>
+              <h1>知识库运营概览</h1>
+              <p>文档、索引与模型服务的实时状态。</p>
+            </div>
+            <div class="hero-actions">
+              <button class="btn btn-ghost" data-go="documents"><svg><use href="#i-upload"></use></svg>上传文档</button>
+              <button class="btn btn-primary" data-go="model"><svg><use href="#i-cpu"></use></svg>配置模型</button>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card"><span class="stat-label">知识库文档</span><strong id="statDocs">—</strong><small id="statReady">—</small></article>
+            <article class="stat-card"><span class="stat-label">可检索片段</span><strong id="statChunks">—</strong><small>512 字切片 · 64 字重叠</small></article>
+            <article class="stat-card"><span class="stat-label">累计对话</span><strong id="statSessions">—</strong><small id="statMessages">—</small></article>
+            <article class="stat-card stat-dark"><span class="stat-label">索引覆盖率</span><strong id="statCoverage">—</strong><small id="statIndexedAt">—</small></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel">
+              <div class="panel-head">
+                <div><h2>最近文档</h2><p>最新的知识库内容</p></div>
+                <button class="text-btn" data-go="documents">全部文档 <svg><use href="#i-arrow"></use></svg></button>
+              </div>
+              <div class="recent-list" id="recentDocs"><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+            </article>
+            <article class="panel model-summary">
+              <div class="panel-head">
+                <div><h2>模型服务</h2><p>当前回答生成配置</p></div>
+                <span class="status-chip" id="modelStatusChip">检查中</span>
+              </div>
+              <div class="model-summary-main">
+                <span class="model-icon"><svg><use href="#i-cpu"></use></svg></span>
+                <div><strong id="dashboardModelName">—</strong><p id="dashboardModelProvider">—</p></div>
+              </div>
+              <dl class="summary-rows">
+                <div><dt>API 地址</dt><dd id="dashboardBaseUrl">—</dd></div>
+                <div><dt>API Key</dt><dd id="dashboardApiKey">—</dd></div>
+                <div><dt>运行模式</dt><dd id="dashboardMode">—</dd></div>
+              </dl>
+              <button class="btn btn-secondary btn-block" data-go="model">管理模型接入</button>
+            </article>
+          </div>
+          <div class="admin-warning" id="defaultPasswordWarning" hidden>
+            <svg><use href="#i-alert"></use></svg>
+            <p>当前仍在使用默认管理员密码，请通过 <code>ADMIN_PASSWORD</code> 环境变量修改。</p>
+          </div>
+        </section>
+
+        <section class="admin-section" id="documentsSection" hidden>
+          <div class="section-hero">
+            <div>
+              <p class="eyebrow">KNOWLEDGE BASE</p>
+              <h1>知识库文档</h1>
+              <p>上传、预览、重建索引或删除企业知识文档。</p>
+            </div>
+            <div class="hero-actions">
+              <button class="btn btn-ghost" id="seedBtn"><svg><use href="#i-sparkles"></use></svg>载入演示资料</button>
+              <button class="btn btn-primary" id="uploadBtn"><svg><use href="#i-upload"></use></svg>上传文档</button>
+            </div>
+          </div>
+
+          <article class="upload-zone" id="dropzone">
+            <input type="file" id="fileInput" multiple hidden accept=".pdf,.docx,.md,.markdown,.txt">
+            <span class="upload-icon"><svg><use href="#i-upload"></use></svg></span>
+            <div><strong>拖拽文档到这里</strong><p>PDF / DOCX / Markdown / TXT，单文件最大 25 MB</p></div>
+            <button class="btn btn-secondary" id="browseBtn" type="button">选择文件</button>
+            <div class="upload-progress" id="uploadProgress" hidden>
+              <div class="progress-head"><span id="uploadLabel">正在上传</span><strong id="uploadPercent">0%</strong></div>
+              <div class="progress-track"><span id="uploadBar"></span></div>
+              <div class="upload-files" id="uploadFiles"></div>
+            </div>
+          </article>
+
+          <article class="panel documents-panel">
+            <div class="panel-head documents-head">
+              <div><h2>全部文档 <span class="count-badge" id="docCount">0</span></h2><p>索引完成后的内容会立即进入问答检索</p></div>
+              <div class="table-tools">
+                <label class="search-box"><svg><use href="#i-search"></use></svg><input id="docSearch" type="search" placeholder="搜索文档"></label>
+                <select id="docStatus"><option value="all">全部状态</option><option value="ready">已索引</option><option value="processing">索引中</option><option value="failed">失败</option></select>
+              </div>
+            </div>
+            <div class="doc-table-head"><span>文档</span><span>状态</span><span>片段</span><span>大小</span><span>更新时间</span><span class="right">操作</span></div>
+            <div class="doc-list" id="docList"></div>
+            <div class="empty-state" id="docEmpty" hidden><span class="empty-icon"><svg><use href="#i-book"></use></svg></span><strong>知识库为空</strong><p>上传第一份文档，或载入演示资料。</p></div>
+          </article>
+        </section>
+
+        <section class="admin-section" id="modelSection" hidden>
+          <div class="section-hero">
+            <div>
+              <p class="eyebrow">MODEL GATEWAY</p>
+              <h1>模型接入</h1>
+              <p>支持第三方 OpenAI 兼容 API 和本地 Ollama / LM Studio，保存后立即生效。</p>
+            </div>
+            <span class="status-chip large" id="modelSectionStatus">检查中</span>
+          </div>
+
+          <div class="model-grid">
+            <form class="panel model-form" id="modelForm">
+              <div class="form-section">
+                <label class="field-label">接入方式</label>
+                <div class="provider-grid">
+                  <label class="provider-option">
+                    <input type="radio" name="provider" value="openai">
+                    <span class="provider-card"><span class="provider-icon"><svg><use href="#i-server"></use></svg></span><strong>第三方 API</strong><small>OpenAI / DeepSeek / Qwen / vLLM</small></span>
+                  </label>
+                  <label class="provider-option">
+                    <input type="radio" name="provider" value="ollama">
+                    <span class="provider-card"><span class="provider-icon"><svg><use href="#i-cpu"></use></svg></span><strong>本地 LLM</strong><small>Ollama / LM Studio / 本地网关</small></span>
+                  </label>
+                  <label class="provider-option">
+                    <input type="radio" name="provider" value="demo">
+                    <span class="provider-card"><span class="provider-icon"><svg><use href="#i-sparkles"></use></svg></span><strong>本地证据模式</strong><small>不调用外部模型，直接引用原文</small></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="model-fields" id="modelFields">
+                <div class="form-row">
+                  <label class="field"><span>API Base URL</span><input id="baseUrl" type="url" placeholder="https://api.deepseek.com/v1"></label>
+                  <label class="field"><span>模型名称</span><input id="modelName" type="text" placeholder="deepseek-chat"></label>
+                </div>
+                <label class="field"><span>API Key <small id="keyState">—</small></span><input id="apiKey" type="password" autocomplete="off" placeholder="留空保持不变"></label>
+                <div class="inline-actions"><label class="checkbox"><input type="checkbox" id="clearKey">清除已保存的 API Key</label><span class="hint">Ollama 本地通常不需要 Key</span></div>
+                <div class="form-row compact">
+                  <label class="field"><span>Temperature</span><input id="temperature" type="number" min="0" max="1.5" step="0.1" value="0.2"></label>
+                  <label class="field"><span>最大输出 Token</span><input id="maxTokens" type="number" min="64" max="8192" step="64" value="1400"></label>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn btn-ghost" id="testModelBtn">测试连接</button>
+                <button type="submit" class="btn btn-primary" id="saveModelBtn">保存配置</button>
+              </div>
+              <div class="test-result" id="testResult" hidden></div>
+            </form>
+
+            <aside class="model-help">
+              <article class="panel help-card">
+                <span class="help-icon"><svg><use href="#i-shield"></use></svg></span>
+                <h3>API Key 安全</h3>
+                <p>密钥在数据库中加密保存，接口不会返回明文。生产环境请修改 <code>LINGXI_SECRET</code>。</p>
+              </article>
+              <article class="panel help-card">
+                <h3>常用配置</h3>
+                <div class="config-examples">
+                  <button type="button" class="example-btn" data-example="deepseek"><strong>DeepSeek</strong><span>api.deepseek.com/v1</span></button>
+                  <button type="button" class="example-btn" data-example="openai"><strong>OpenAI</strong><span>api.openai.com/v1</span></button>
+                  <button type="button" class="example-btn" data-example="ollama"><strong>本地 Ollama</strong><span>127.0.0.1:11434/v1</span></button>
+                </div>
+              </article>
+              <article class="panel help-card">
+                <h3>本地 LLM 前置条件</h3>
+                <p>先启动 Ollama，并确认模型已拉取，例如：</p>
+                <code class="code-block">ollama pull qwen2.5:7b<br>ollama serve</code>
+              </article>
+            </aside>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="confirmModal" hidden>
+    <div class="modal-backdrop" data-close-confirm></div>
+    <div class="modal-card confirm-card">
+      <span class="confirm-icon"><svg><use href="#i-alert"></use></svg></span>
+      <h2 id="confirmTitle">确认操作</h2>
+      <p id="confirmMessage"></p>
+      <div class="modal-actions"><button class="btn btn-ghost" id="confirmCancel">取消</button><button class="btn btn-danger" id="confirmOk">确认删除</button></div>
+    </div>
+  </div>
+
+  <div class="modal" id="docModal" hidden>
+    <div class="modal-backdrop" data-close-doc></div>
+    <div class="modal-card doc-modal">
+      <div class="modal-head"><div><p class="eyebrow">DOCUMENT CHUNKS</p><h2 id="docModalTitle">文档切片</h2></div><button class="icon-btn" data-close-doc><svg><use href="#i-close"></use></svg></button></div>
+      <div class="chunk-list" id="chunkList"></div>
+    </div>
+  </div>
+
+  <div class="toast-root" id="toastRoot"></div>
+  <script src="/assets/admin.js?v=1.1.0" defer></script>
+</body>
+</html>
